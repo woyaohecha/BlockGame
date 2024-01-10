@@ -53,7 +53,7 @@ export const enum ApiUrl {
     /**
      * 完成任务
      */
-    COMPLETE_TASK = ""
+    COMPLETE_TASK = "taskRewardCollection"
 }
 
 /**

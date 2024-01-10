@@ -12,10 +12,6 @@ export class UserData {
      */
     loginInfo: any = null;
     /**
-     * 用户个人信息
-     */
-    userInfo: any = null;
-    /**
      * 用户头像
      */
     userImg: SpriteFrame = null;
@@ -25,7 +21,7 @@ export class UserData {
     private _shared: boolean = false;
     set shared(value: boolean) {
         this._shared = value;
-        sys.localStorage.setItem("shared", JSON.stringify(this._shared));
+        sys.localStorage.setItem("shared", JSON.stringify(this.shared));
     }
     get shared() {
         return this._shared;
@@ -39,7 +35,7 @@ export class UserData {
         sys.localStorage.setItem("onlineTimer", JSON.stringify(this.onlineTimer));
     }
     get onlineTimer() {
-        return this._onlineTimer;
+        return this._onlineTimer > 600 ? 600 : this._onlineTimer;
     }
     /**
      * 今日通关次数
@@ -53,7 +49,7 @@ export class UserData {
         return this._passCount;
     }
 
-    constructor() {
+    private constructor() {
         this.startOnlineTimer();
         let lastLoginData = sys.localStorage.getItem("lastLoginData");
         if (lastLoginData && Util.isNewDay(JSON.parse(lastLoginData))) {
@@ -82,8 +78,11 @@ export class UserData {
      * 启动在线计时器
      */
     startOnlineTimer() {
-        setInterval(() => {
+        let timer = setInterval(() => {
             this.onlineTimer++;
+            if (this.onlineTimer >= 600) {
+                clearInterval(timer);
+            }
         }, 1000);
     }
 }

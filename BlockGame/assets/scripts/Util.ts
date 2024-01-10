@@ -174,6 +174,19 @@ export class Util {
         return Math.floor(rr);
     }
 
+
+    public static getRandomNumsFromNToM(min: number, max: number, count: number) {
+        let nums: number[] = [];
+        while (nums.length < count) {
+            let randomNum = Math.floor(Math.random() * (Math.abs(max - min)));
+            if (!nums.includes(randomNum)) {
+                nums.push(randomNum);
+            }
+        }
+        return nums;
+    }
+
+
     /**
      * 获取字符串长度
      * @param {string} render 

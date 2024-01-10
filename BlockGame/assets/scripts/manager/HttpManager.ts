@@ -212,10 +212,11 @@ export class HttpManager {
      * @param success 
      * @param fail 
      */
-    public static sign(success: Function, fail: Function) {
+    public static sign(sign_id: string, success: Function, fail: Function) {
         let url = HttpConfig.httpUrl + ApiUrl.CLICK_SIGN;
         let params = {
-            game_id: AppConfig.game_id
+            game_id: AppConfig.game_id,
+            signup_id: sign_id
         }
         this.httpRequest("POST", url, params, true, success, fail);
     }

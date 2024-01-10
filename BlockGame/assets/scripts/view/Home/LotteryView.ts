@@ -3,18 +3,35 @@ import { HttpManager } from '../../manager/HttpManager';
 import { TipsManager } from '../../manager/TipsManager';
 const { ccclass, property } = _decorator;
 
-@ccclass('Lottery')
-export class Lottery extends Component {
+@ccclass('LotteryView')
+export class LotteryView extends Component {
     @property(Node)
     itemsPanel: Node = null;
 
+    @property(Node)
+    btns: Node = null;
+
     lotteryList: any[] = null;
+    freeCountMax: number = 10;
+    videoCountMax: number = 10;
+
+    onLoad() {
+        HttpManager.getGameConfig((res) => {
+            let config = JSON.parse(res).data.list;
+            this.freeCountMax = config.lottery_free.value;
+            this.videoCountMax = config.lottery_video.value;
+            console.log(config);
+        }, (e) => {
+            console.error(e);
+        })
+    }
 
     onEnable() {
+        this.lotterying = true;
         this.initPan();
+        this.initBtn();
         HttpManager.getLotteryList((res) => {
             let data = JSON.parse(res).data.list;
-            console.log(data);
             this.lotteryList = data;
             if (data.length > 0) {
                 for (let i = 0; i < data.length; i++) {
@@ -28,6 +45,7 @@ export class Lottery extends Component {
 
                 }
             }
+            this.lotterying = false;
         }, (e) => {
             console.error(e);
         })
@@ -60,10 +78,10 @@ export class Lottery extends Component {
     }
 
     startPan(index) {
+        this.initBtn();
         let pan = this.itemsPanel.parent;
         let lastAngle = pan.eulerAngles.z;
         let angle = -360 * 3 - (360 - 45 * index) + (Math.abs(lastAngle) % 360);
-        console.log(angle);
         tween(pan)
             .by(2, { eulerAngles: new Vec3(0, 0, angle) }, { easing: "quadOut" })
             .call(() => {
@@ -84,6 +102,25 @@ export class Lottery extends Component {
         this.scheduleOnce(() => {
             this.lotterying = false;
         }, 1)
+    }
+
+
+    initBtn() {
+        for (let btn of this.btns.children) {
+            btn.active = false;
+        }
+        HttpManager.getUserInfo((res) => {
+            let data = JSON.parse(res).data;
+            let freeCount = Number(data.raffle_free);
+            let videoCount = Number(data.raffle_video);
+            this.btns.getChildByName("BtnFree").active = freeCount > 0;
+            this.btns.getChildByName("BtnFree").getChildByName("RemainTime").getComponent(Label).string = `(${freeCount}/${this.freeCountMax})`;
+            this.btns.getChildByName("BtnVideo").active = freeCount == 0 && videoCount > 0;
+            this.btns.getChildByName("BtnVideo").getChildByName("RemainTime").getComponent(Label).string = `(${videoCount}/${this.videoCountMax})`;
+            this.btns.getChildByName("BtnNo").active = freeCount == 0 && videoCount == 0;
+        }, (e) => {
+            console.error(e);
+        })
     }
 
 

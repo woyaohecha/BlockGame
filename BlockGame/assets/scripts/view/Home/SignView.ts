@@ -4,8 +4,8 @@ import { HttpManager } from '../../manager/HttpManager';
 import { SignItem } from './SignItem';
 const { ccclass, property } = _decorator;
 
-@ccclass('Sign')
-export class Sign extends Component {
+@ccclass('SignView')
+export class SignView extends Component {
     @property(Node)
     panel: Node = null;
 

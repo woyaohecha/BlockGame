@@ -160,14 +160,7 @@ export class Login extends Component {
                 this.tipsManager.showTips("登录成功");
                 this.setPhoneCache(this.phone);
                 UserData.getInstance().loginInfo = data.data;
-                HttpManager.getUserInfo((res) => {
-                    let data = JSON.parse(res).data;
-                    console.log("---获取用户信息成功", data);
-                    UserData.getInstance().userInfo = data;
-                    director.loadScene("Home");
-                }, () => {
-                    console.error("---获取用户信息失败");
-                })
+                director.loadScene("Home");
             } else {
                 this.tipsManager.showTips(data.msg);
             }

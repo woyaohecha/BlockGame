@@ -5,8 +5,8 @@ import { HttpManager } from '../../manager/HttpManager';
 import { Util } from '../../Util';
 const { ccclass, property } = _decorator;
 
-@ccclass('Mine')
-export class Mine extends Component {
+@ccclass('MineView')
+export class MineView extends Component {
 
     @property(Sprite)
     userImgSp: Sprite = null;
@@ -24,7 +24,6 @@ export class Mine extends Component {
         HttpManager.getUserInfo((res) => {
             let data = JSON.parse(res).data;
             console.log("---获取用户信息成功", data);
-            UserData.getInstance().userInfo = data;
             this.init(data);
         }, () => {
             console.error("---获取用户信息失败");

@@ -1,4 +1,7 @@
 import { _decorator, Component, Node, director } from 'cc';
+import { HttpManager } from '../../manager/HttpManager';
+import { UserData } from '../../data/UserData';
+import { GameData } from '../../data/GameData';
 const { ccclass, property } = _decorator;
 
 export const enum LayerType {
@@ -9,8 +12,8 @@ export const enum LayerType {
     LOTTERY = "Lottery",
 }
 
-@ccclass('Home')
-export class Home extends Component {
+@ccclass('HomePage')
+export class HomePage extends Component {
 
     @property(Node)
     homeLayer: Node = null;
@@ -54,7 +57,12 @@ export class Home extends Component {
     }
 
 
+    private _clickBtn: boolean = false;
     onBtnStart() {
+        if (this._clickBtn) {
+            return;
+        }
+        this._clickBtn = true;
         director.loadScene("Game");
     }
 }

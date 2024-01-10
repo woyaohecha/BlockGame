@@ -18,21 +18,27 @@ export class SignItem extends Component {
 
     /**
      * 设置按钮状态
-     * @param state 0不能签到 1可以签到 2已签到 
+     * @param state 0不能签到 1已签到 2可以签到 
      */
     setBtnState(state: number) {
         let btns = this.node.getChildByName("Btn");
-        btns.getChildByName("Already").active = state == 2;
-        btns.getChildByName("Can").active = state == 1;
+        btns.getChildByName("Already").active = state == 1;
+        btns.getChildByName("Can").active = state == 2;
         btns.getChildByName("No").active = state == 0;
     }
 
 
     onCompletedTask() {
-        HttpManager.sign((res) => {
-            console.log("签到成功", res);
-            TipsManager.getInstance().showTips(`签到成功,获得金币x${this.signData.reward_value}`);
-            this.setBtnState(2);
+        let sign_id = this.signData.id;
+        HttpManager.sign(sign_id, (res) => {
+            if (JSON.parse(res).code == 1) {
+                console.log("签到成功", res);
+                TipsManager.getInstance().showTips(`签到成功,获得金币x${this.signData.reward_value}`);
+                this.setBtnState(1);
+            } else {
+                console.error("签到失败", JSON.parse(res).msg);
+                TipsManager.getInstance().showTips(`签到失败`);
+            }
         }, (e) => {
             console.error("签到失败", e);
             TipsManager.getInstance().showTips(`签到失败`);

@@ -1,18 +1,21 @@
 import { _decorator, Component, Node, assetManager, resources, Prefab, Root, instantiate, Label } from 'cc';
 import { ResConfig } from '../../config/ResConfig';
+import { GameData } from '../../data/GameData';
 import { UserData } from '../../data/UserData';
 import { HttpManager } from '../../manager/HttpManager';
 import { TaskItem } from './TaskItem';
 const { ccclass, property } = _decorator;
 
-@ccclass('Task')
-export class Task extends Component {
+@ccclass('TaskView')
+export class TaskView extends Component {
 
     @property(Node)
     dailyPanel: Node = null;
 
     @property(Node)
     achievementPanel: Node = null;
+
+    level: number = null;
 
     /**
      * 每次打开任务列表，刷新任务
@@ -55,8 +58,25 @@ export class Task extends Component {
                 return;
             }
             let task = instantiate(taskPrefab);
-            task.getComponent(TaskItem).init(taskData);
-            task.setParent(parent);
+            if (taskData.name == "通关游戏") {
+                if (this.level == null) {
+                    GameData.getUserLevel((level) => {
+                        this.level = level;
+                        task.getComponent(TaskItem).init(taskData, level);
+                        task.setParent(parent);
+                    }, (e) => {
+
+                    })
+                } else {
+                    task.getComponent(TaskItem).init(taskData, this.level);
+                    task.setParent(parent);
+                }
+
+            } else {
+                task.getComponent(TaskItem).init(taskData);
+                task.setParent(parent);
+            }
+
         })
     }
 

@@ -1,5 +1,6 @@
 import { _decorator, Component, Node, Prefab, resources, instantiate, Label, Button } from 'cc';
 import { ResConfig } from '../../config/ResConfig';
+import { GameData } from '../../data/GameData';
 import { UserData } from '../../data/UserData';
 import { HttpManager } from '../../manager/HttpManager';
 import { TipsManager } from '../../manager/TipsManager';
@@ -10,7 +11,7 @@ export class TaskItem extends Component {
 
     taskData: any = null;
 
-    init(taskData: any) {
+    init(taskData: any, level?: number) {
         this.taskData = taskData;
 
         this.node.getChildByName("TaskId").getComponent(Label).string = taskData.id;
@@ -19,7 +20,8 @@ export class TaskItem extends Component {
         let value: any = null;
         switch (taskData.name) {
             case "分享游戏":
-                value = Number(UserData.getInstance().shared);
+                // value = Number(UserData.getInstance().shared);
+                value = 1;
                 break;
             case "在线时长":
                 value = Math.floor(UserData.getInstance().onlineTimer / 60);
@@ -28,7 +30,7 @@ export class TaskItem extends Component {
                 value = UserData.getInstance().passCount;
                 break;
             case "通关游戏":
-                value = UserData.getInstance().userInfo.barrier;
+                value = level;
                 break;
             default:
                 break;

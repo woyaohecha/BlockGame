@@ -41,6 +41,12 @@ export class ResConfig {
 
     public static readonly signPrefabPath = "prefab/item/SignItem"
 
+    public static readonly blockPath = "prefab/blockType/Block_"
+
+    public static readonly blockImgPath = "blockImg";
+
+    public static readonly gridPath = "prefab/item/GridItem";
+
     public static readonly ABPath = {
 
     }

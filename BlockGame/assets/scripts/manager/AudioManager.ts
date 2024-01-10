@@ -26,13 +26,9 @@ export class AudioManager {
     private _longAudioSource: AudioSource;
 
     /**
-     * 长音频开关
+     * 音频开关
      */
-    private _shortSwitch: boolean;
-    /**
-     * 短音频开关
-     */
-    private _LongSwitch: boolean;
+    private _audioSwitch: boolean =true;
 
     /**
      * 添加场景常驻节点 -shortAudioNode -name-audioShort
@@ -45,12 +41,14 @@ export class AudioManager {
         director.getScene().addChild(shortAudioNode);
         director.addPersistRootNode(shortAudioNode);
         this._shortAudioSource = shortAudioNode.addComponent(AudioSource);
+        console.log("创建音效节点");
 
         let longAudioNode = new Node();
         longAudioNode.name = "audioLong";
         director.getScene().addChild(longAudioNode);
         director.addPersistRootNode(longAudioNode);
         this._longAudioSource = longAudioNode.addComponent(AudioSource);
+        console.log("创建音乐节点");
     }
 
 
@@ -60,7 +58,7 @@ export class AudioManager {
      * @param volume 音量
      */
     playShort(sound: AudioClip | string, volume: number = 1.0) {
-        if (!this._shortSwitch) {
+        if (!this._audioSwitch) {
             return;
         }
         if (sound instanceof AudioClip) {
@@ -82,7 +80,7 @@ export class AudioManager {
      * @param volume 音量
      */
     playLong(sound: AudioClip | string, volume: number = 1.0) {
-        if (!this._LongSwitch) {
+        if (!this._audioSwitch) {
             return;
         }
         if (sound instanceof AudioClip) {
@@ -128,28 +126,25 @@ export class AudioManager {
     }
 
     /**
-     * 设置短音频、音效开关
+     * 设置音频开关
      * @param value 开关
      */
-    setShortSwitch(value: boolean) {
-        this._shortSwitch = value;
+    setAudioSwitch(value: boolean) {
+        this._audioSwitch = value;
+        console.log(`set aduio-switch:${this._audioSwitch}`)
         if (!value) {
             this.stopShort();
         }
     }
 
     /**
-     * 设置长音频、背景音乐开关
-     * @param value 开关
+     * 获取音频开关
+     * @returns 
      */
-    setLongSwitch(value: boolean) {
-        this._LongSwitch = value;
-        if (!value) {
-            this.stopLong();
-        } else {
-            this.resumeLong();
-        }
+    getAudioSwitch(){
+        return this._audioSwitch;
     }
+
 
     /**
      * 停止播放短音频、音效
@@ -183,7 +178,7 @@ export class AudioManager {
      * 恢复播放短音频、音效
      */
     resumeShort() {
-        if (!this._shortSwitch) {
+        if (!this._audioSwitch) {
             return;
         }
         this._shortAudioSource.play();
@@ -193,7 +188,7 @@ export class AudioManager {
      * 恢复播放长音频、音效
      */
     resumeLong() {
-        if (!this._LongSwitch) {
+        if (!this._audioSwitch) {
             return;
         }
         this._longAudioSource.play();

@@ -1,5 +1,6 @@
 import { _decorator, Component, Node, director, find, ProgressBar, math, Label, EditBox, sys, debug, profiler } from 'cc';
 import { DEBUG } from 'cc/env';
+import { AudioManager } from '../../manager/AudioManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('Loading')
@@ -36,6 +37,7 @@ export class Loading extends Component {
         let root3D = find("Root3D");
         director.addPersistRootNode(root2D);
         director.addPersistRootNode(root3D);
+        AudioManager.getInstance();
         director.preloadScene("Home", () => {
             this._preloadScene = true;
         })
