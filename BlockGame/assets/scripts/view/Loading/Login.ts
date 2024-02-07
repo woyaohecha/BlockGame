@@ -1,5 +1,6 @@
 import { _decorator, Component, Node, EditBox, sys, Toggle, director, Label, Sprite, Color, Button } from 'cc';
 import { UserData } from '../../data/UserData';
+import { AdManager, AdType } from '../../manager/AdManager';
 import { HttpManager } from '../../manager/HttpManager';
 import { TipsManager } from '../../manager/TipsManager';
 const { ccclass, property } = _decorator;
@@ -46,7 +47,7 @@ export class Login extends Component {
         }
         this.checkToggle.isChecked = false;
         this.btnSendMsg.getChildByName("Des").getComponent(Label).string = "获取验证码";
-        this.btnSendMsg.getComponent(Sprite).color = new Color().fromHEX("#99E7FF");
+        this.btnSendMsg.getComponent(Sprite).color = new Color().fromHEX("#00ADFF");
         this.btnSendMsg.getComponent(Button).interactable = true;
     }
 
@@ -56,7 +57,7 @@ export class Login extends Component {
      */
     setSendMsgBtn(state: boolean) {
         this.btnSendMsg.getChildByName("Des").getComponent(Label).string = state ? "获取验证码" : this.timer + "s";
-        this.btnSendMsg.getComponent(Sprite).color = state ? new Color().fromHEX("#99E7FF") : new Color().fromHEX("#ADADAD");
+        this.btnSendMsg.getComponent(Sprite).color = state ? new Color().fromHEX("#00ADFF") : new Color().fromHEX("#ADADAD");
         this.btnSendMsg.getComponent(Button).interactable = state;
     }
 
@@ -101,26 +102,19 @@ export class Login extends Component {
             return;
         }
         HttpManager.sendPhoneMsg(this.phone, (res) => {
-            let data = JSON.parse(res);
-            if (data.code == 0) {
-                console.log("---" + data.msg)
-                this.tipsManager.showTips(data.msg);
-            } else {
-                console.log("---短信发送成功")
-                this.tipsManager.showTips("短信发送成功");
-                this.startTimer();
-            }
+            console.log("---短信发送成功")
+            this.startTimer();
         }, () => {
             console.error("---短信发送失败")
-            this.tipsManager.showTips("短信发送失败");
+            // this.tipsManager.showTips("短信发送失败");
         })
         // this.startTimer();
     }
 
-    timer: number = 5;
+    timer: number = 60;
     waitMsg: boolean = false;
     startTimer() {
-        this.timer = 5;
+        this.timer = 60;
         this.waitMsg = true;
         this.setSendMsgBtn(false);
         let callback = () => {
@@ -155,20 +149,15 @@ export class Login extends Component {
         this.clickBtn = true;
         this.tipsManager.showLoading("正在登录...");
         HttpManager.login(this.phone, this.code, (res) => {
-            let data = JSON.parse(res);
-            if (data.code == 1) {
-                this.tipsManager.showTips("登录成功");
-                this.setPhoneCache(this.phone);
-                UserData.getInstance().loginInfo = data.data;
-                director.loadScene("Home");
-            } else {
-                this.tipsManager.showTips(data.msg);
-            }
+            let data = JSON.parse(res).data;
+            this.setPhoneCache(this.phone);
+            UserData.getInstance().accessToken = data.access_token;
+            UserData.getInstance().refreshToken = data.refresh_token;
+            director.loadScene("Home");
             this.clickBtn = false;
             this.tipsManager.hideLoading();
         }, (e) => {
             console.error("---登录失败", e)
-            this.tipsManager.showTips("登录失败");
             this.clickBtn = false;
             this.tipsManager.hideLoading();
         })

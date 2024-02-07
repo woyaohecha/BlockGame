@@ -1,4 +1,4 @@
-import { _decorator } from "cc";
+import { Size, size, SpriteFrame, view, _decorator } from "cc";
 import { WINDOWS } from "cc/env";
 
 const { ccclass, property } = _decorator;
@@ -184,6 +184,32 @@ export class Util {
             }
         }
         return nums;
+    }
+
+
+    public static getImgAdaptSize(sp: SpriteFrame) {
+        // 获取屏幕的可见尺寸
+        var visibleSize = view.getVisibleSize();
+        // 计算图片的缩放比例，使其与屏幕等高或等宽
+        var widthRatio = visibleSize.width / sp.width;
+        var heightRatio = visibleSize.height / sp.height;
+        let contentSize = widthRatio < heightRatio ? size(visibleSize.width, sp.height * widthRatio) : size(sp.width * heightRatio, visibleSize.height)
+
+        return contentSize;
+    }
+
+
+    public static getAdaptSize(originSize: Size) {
+        // 获取屏幕的可见尺寸
+        var visibleSize = view.getVisibleSize();
+        // 计算图片的缩放比例，使其与屏幕等高或等宽
+        var widthRatio = visibleSize.width / originSize.width;
+        var heightRatio = visibleSize.height / originSize.height;
+        console.log(visibleSize, widthRatio, heightRatio)
+        let contentSize = widthRatio < heightRatio ? size(visibleSize.width, originSize.height * widthRatio) : size(originSize.width * heightRatio, visibleSize.height)
+        console.log("originSize:", originSize);
+        console.log("contentSize:", contentSize);
+        return contentSize;
     }
 
 
@@ -764,6 +790,41 @@ export class Util {
             }
         }
         return string;
+    }
+
+    public static onCopyLink(str: string) {
+        var input = str + '';
+        const el = document.createElement('textarea');
+        el.value = input;
+        el.setAttribute('readonly', '');
+        el.style.contain = 'strict';
+        el.style.position = 'absolute';
+        el.style.left = '-9999px';
+        el.style.fontSize = '12pt'; // Prevent zooming on iOS
+
+        const selection = getSelection();
+        var originalRange: any = false;
+        if (selection.rangeCount > 0) {
+            originalRange = selection.getRangeAt(0);
+        }
+        document.body.appendChild(el);
+        el.select();
+        el.selectionStart = 0;
+        el.selectionEnd = input.length;
+
+        var success = false;
+        try {
+            success = document.execCommand('copy');
+        } catch (err) { }
+
+        document.body.removeChild(el);
+
+        if (originalRange) {
+            selection.removeAllRanges();
+            selection.addRange(originalRange);
+        }
+        console.log('--->复制成功');
+        return success;
     }
 
     /**

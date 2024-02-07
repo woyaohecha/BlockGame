@@ -1,6 +1,9 @@
 import { _decorator, Component, Node, Label, math, Vec3, tween } from 'cc';
+import { GameData } from '../../data/GameData';
+import { AdManager, AdType } from '../../manager/AdManager';
 import { HttpManager } from '../../manager/HttpManager';
 import { TipsManager } from '../../manager/TipsManager';
+import { UILayer, UIManager } from '../../manager/UIManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('LotteryView')
@@ -16,17 +19,17 @@ export class LotteryView extends Component {
     videoCountMax: number = 10;
 
     onLoad() {
-        HttpManager.getGameConfig((res) => {
-            let config = JSON.parse(res).data.list;
+        GameData.getGameConfig((config) => {
             this.freeCountMax = config.lottery_free.value;
             this.videoCountMax = config.lottery_video.value;
-            console.log(config);
-        }, (e) => {
-            console.error(e);
+        }, () => {
+            this.freeCountMax = 10;
+            this.videoCountMax = 10;
         })
     }
 
     onEnable() {
+        AdManager.getInstance().hideBanner();
         this.lotterying = true;
         this.initPan();
         this.initBtn();
@@ -60,14 +63,10 @@ export class LotteryView extends Component {
     }
 
     lotterying: boolean = false;
-    onBtnLottery() {
-        if (this.lotterying) {
-            return;
-        }
-        this.lotterying = true;
+
+    lottery() {
         HttpManager.lottery((res) => {
             let data = JSON.parse(res).data;
-            console.log(data);
             let index = this.lotteryList.findIndex((item) => {
                 return item.id == data.raffle_id;
             })
@@ -75,6 +74,25 @@ export class LotteryView extends Component {
         }, (e) => {
             console.error("抽奖失败", e);
         })
+    }
+
+    onBtnLottery() {
+        if (this.lotterying) {
+            return;
+        }
+        this.lotterying = true;
+        if (this.btns.getChildByName("BtnVideo").active) {
+            AdManager.getInstance().showAd(AdType.video, () => {
+
+            }, () => {
+                TipsManager.getInstance().showTips("获取视频广告失败");
+                this.lotterying = false;
+            }, () => {
+                this.lottery();
+            })
+        } else {
+            this.lottery();
+        }
     }
 
     startPan(index) {
@@ -121,6 +139,15 @@ export class LotteryView extends Component {
         }, (e) => {
             console.error(e);
         })
+    }
+
+
+    onBtnClose() {
+        UIManager.getInstance().hideUI(UILayer.LOTTERY);
+    }
+
+    onDisable() {
+        AdManager.getInstance().showAd(AdType.banner);
     }
 
 

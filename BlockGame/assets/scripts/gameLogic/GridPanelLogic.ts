@@ -137,9 +137,10 @@ export class GridPanelLogic extends Component {
                 for (let j = 0; j < canEliminateGrid[i].length; j++) {
                     canEliminateGrid[i][j].getComponent(GridLogic).init();
                 }
+                EventManager.getInstance().emit("addScore", 10);
             }
         }
-        EventManager.getInstance().emit("blockPlace");
+        EventManager.getInstance().emit("blockPlace", this);
     }
 
     /**

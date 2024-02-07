@@ -7,14 +7,37 @@ export class UserData {
 
     private static _userData: UserData;
 
-    /**
-     * 登录后获取的凭证
-     */
-    loginInfo: any = null;
+    selectCashId: number = 0;
+
     /**
      * 用户头像
      */
     userImg: SpriteFrame = null;
+
+    /**
+     * 登录态token
+     */
+    private _refreshToken: string = null;
+    set refreshToken(value: string) {
+        this._refreshToken = value;
+        sys.localStorage.setItem("refreshToken", JSON.stringify(this._refreshToken));
+    }
+    get refreshToken() {
+        return this._refreshToken;
+    }
+
+    /**
+     * 校验token
+     */
+    private _accessToken: any = null;
+    set accessToken(value) {
+        this._accessToken = value;
+        sys.localStorage.setItem("accessToken", JSON.stringify(this._accessToken));
+    }
+    get accessToken() {
+        return this._accessToken;
+    }
+
     /**
      * 今日是否分享
      */
@@ -51,6 +74,8 @@ export class UserData {
 
     private constructor() {
         this.startOnlineTimer();
+        this.accessToken = sys.localStorage.getItem("accessToken") ? JSON.parse(sys.localStorage.getItem("accessToken")) : null;
+        this.refreshToken = sys.localStorage.getItem("refreshToken") ? JSON.parse(sys.localStorage.getItem("refreshToken")) : null;
         let lastLoginData = sys.localStorage.getItem("lastLoginData");
         if (lastLoginData && Util.isNewDay(JSON.parse(lastLoginData))) {
             console.log("new day");
@@ -84,6 +109,14 @@ export class UserData {
                 clearInterval(timer);
             }
         }, 1000);
+    }
+
+
+    onQuit() {
+        this.accessToken = "";
+        this.refreshToken = "";
+        sys.localStorage.removeItem("accessToken");
+        sys.localStorage.removeItem("refreshToken");
     }
 }
 

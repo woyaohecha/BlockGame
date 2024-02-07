@@ -1,7 +1,9 @@
-import { _decorator, Component, Label, Node } from 'cc';
+import { _decorator, Component, Label, Node, tween, Vec2, Vec3, Tween } from 'cc';
 import { GameData } from '../../data/GameData';
 import { GridPanelLogic } from '../../gameLogic/GridPanelLogic';
 import { NextPanelLogic } from '../../gameLogic/NextPanelLogic';
+import { AdManager, AdType } from '../../manager/AdManager';
+import { EventManager } from '../../manager/EventManager';
 import { GamePage } from './GamePage';
 const { ccclass, property } = _decorator;
 
@@ -23,7 +25,7 @@ export class PlayView extends Component {
     private _level: number = 0;
     set level(value: number) {
         this._level = value;
-        this.levelLabel.string = `第${this.level + 1}关`;
+        this.levelLabel.string = `第${this.level}关`;
     }
     get level() {
         return this._level;
@@ -56,18 +58,21 @@ export class PlayView extends Component {
 
     nextPanelLogic: NextPanelLogic = null;
     gridPanelLogic: GridPanelLogic = null;
+    levelData: any = null;
 
     onLoad() {
         this.gridPanelLogic = this.node.getChildByName("GridPanel").getComponent(GridPanelLogic);
         this.nextPanelLogic = this.node.getChildByName("NextPanel").getComponent(NextPanelLogic);
+        EventManager.getInstance().on("addScore", this.addScore, this);
     }
 
 
     initGamePage() {
         console.log("PlayView init");
         GameData.getUserLevel((level) => {
-            this.level = level;
-            GameData.getLevelData(this.level, (leveData) => {
+            this.level = level + 1;
+            GameData.getLevelData(level, (leveData) => {
+                this.levelData = leveData;
                 this.target = leveData.pass_points;
             }, () => {
 
@@ -80,12 +85,39 @@ export class PlayView extends Component {
     }
 
 
+    addScore(value: number) {
+        this.score += value;
+        Tween.stopAllByTarget(this.scoreLabel.node);
+        this.scoreLabel.node.scale = new Vec3(1, 1, 1);
+        tween(this.scoreLabel.node)
+            .to(0.2, { scale: new Vec3(1.2, 1.2, 1) })
+            .to(0.2, { scale: new Vec3(1, 1, 1) })
+            .start();
+        if (this.score >= this.target) {
+            EventManager.getInstance().emit("gameSettle", true, this.levelData.pass_goldcoin);
+        }
+    }
+
+
     onBtnPause() {
-        this.node.parent.getComponent(GamePage).onPause();
+        EventManager.getInstance().emit("gamePause");
     }
 
     onBtnFresh() {
-        this.node.getChildByName("NextPanel").getComponent(NextPanelLogic).freshThreeBlock();
+        AdManager.getInstance().hideBanner();
+        AdManager.getInstance().showAd(AdType.video, () => {
+
+        }, () => {
+            AdManager.getInstance().showAd(AdType.banner);
+        }, () => {
+            this.node.getChildByName("NextPanel").getComponent(NextPanelLogic).freshThreeBlock();
+            AdManager.getInstance().showAd(AdType.banner);
+        })
+        // this.node.getChildByName("NextPanel").getComponent(NextPanelLogic).freshThreeBlock();
+    }
+
+    onDestroy() {
+        EventManager.getInstance().off("addScore", this.addScore, this);
     }
 }
 

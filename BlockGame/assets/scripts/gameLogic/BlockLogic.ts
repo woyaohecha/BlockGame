@@ -17,7 +17,7 @@ export class BlockLogic extends Component {
     touchOffset: Vec3 = new Vec3(0, 300, 0);
     blockImg: SpriteFrame = null;
     blockType: any = null;
-    canDrag: boolean = true;
+    canDrag: boolean = false;
 
     onLoad() {
         this.node.on(Node.EventType.TOUCH_START, this.onTouchStart, this);
@@ -31,6 +31,7 @@ export class BlockLogic extends Component {
      * 重置数据
      */
     initBlock() {
+        this.canDrag = true;
         this.node.setScale(new Vec3(1, 1, 1));
         for (let child of this.node.children) {
             child.setScale(new Vec3(1, 1, 1));
@@ -105,7 +106,7 @@ export class BlockLogic extends Component {
             return;
         }
         this.onTouch = true;
-        let touchPos = new Vec3(e.getLocation().x, e.getLocation().y);
+        let touchPos = new Vec3(e.getUILocation().x, e.getUILocation().y, 0);
         let localPos = this.node.parent.getComponent(UITransform).convertToNodeSpaceAR(touchPos);
         let targetPos = new Vec3(localPos.x + this.touchOffset.x, localPos.y + this.touchOffset.y, localPos.z + this.touchOffset.z);
         this.drag(targetPos);
@@ -115,7 +116,7 @@ export class BlockLogic extends Component {
         if (!this.canDrag) {
             return;
         }
-        let touchPos = new Vec3(e.getLocation().x, e.getLocation().y);
+        let touchPos = new Vec3(e.getUILocation().x, e.getUILocation().y);
         let localPos = this.node.parent.getComponent(UITransform).convertToNodeSpaceAR(touchPos);
         let targetPos = new Vec3(localPos.x + this.touchOffset.x, localPos.y + this.touchOffset.y, localPos.z + this.touchOffset.z);
         this.node.setPosition(targetPos);

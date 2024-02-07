@@ -43,6 +43,13 @@ export class AdConfig {
         insertID: "",
         bannerID: ""
     }
+
+    /**
+     * 穿山甲广告
+     */
+    public static readonly csjAd = {
+
+    }
 }
 
 

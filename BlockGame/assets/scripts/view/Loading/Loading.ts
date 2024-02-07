@@ -1,6 +1,10 @@
 import { _decorator, Component, Node, director, find, ProgressBar, math, Label, EditBox, sys, debug, profiler } from 'cc';
 import { DEBUG } from 'cc/env';
+import { UserData } from '../../data/UserData';
+import { AdManager, AdType } from '../../manager/AdManager';
 import { AudioManager } from '../../manager/AudioManager';
+import { HttpManager } from '../../manager/HttpManager';
+import { TipsManager } from '../../manager/TipsManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('Loading')
@@ -13,13 +17,10 @@ export class Loading extends Component {
     percentLabel: Label = null;
 
     @property(Node)
-    btnLogin: Node = null;
-
-    @property(Node)
     loginPanel: Node = null;
 
     private _progress: number = 0;
-    private _preloadScene: boolean = false;
+    private _loading: boolean = false;
 
     private set progress(value: number) {
         this._progress = value > 1 ? 1 : value;
@@ -33,14 +34,15 @@ export class Loading extends Component {
 
     onLoad() {
         profiler.hideStats();
+
         let root2D = find("Root2D");
         let root3D = find("Root3D");
         director.addPersistRootNode(root2D);
         director.addPersistRootNode(root3D);
         AudioManager.getInstance();
-        director.preloadScene("Home", () => {
-            this._preloadScene = true;
-        })
+        director.preloadScene("Home")
+        AdManager.getInstance().showAd(AdType.open);
+        AdManager.getInstance().hideBanner();
     }
 
     start() {
@@ -53,25 +55,34 @@ export class Loading extends Component {
 
     init() {
         this.progress = 0;
-        this.btnLogin.active = false;
         this.loginPanel.active = false;
     }
 
     loadBar(dt: number) {
+        if (this._loading) {
+            return
+        }
         if (this.progress < 1) {
             this.progress += dt * math.random();
         } else {
-            if (this._preloadScene) {
-                this._preloadScene = false;
-                this.progressBar.node.active = false;
-                this.btnLogin.active = true;
-            }
+            this._loading = true;
+            this.autoLogin();
         }
     }
 
-    onBtnLogin() {
-        this.btnLogin.active = false;
-        this.loginPanel.active = true;
+    autoLogin() {
+        TipsManager.getInstance().showLoading("登录中...");
+        HttpManager.autoLogin((res) => {
+            UserData.getInstance().accessToken = JSON.parse(res).data.access_token;
+            UserData.getInstance().refreshToken = JSON.parse(res).data.refresh_token;
+            TipsManager.getInstance().hideLoading();
+            TipsManager.getInstance().showTips("登录成功");
+            director.loadScene("Home");
+        }, () => {
+            TipsManager.getInstance().hideLoading();
+            this.progressBar.node.active = false;
+            this.loginPanel.active = true;
+        })
     }
 }
 

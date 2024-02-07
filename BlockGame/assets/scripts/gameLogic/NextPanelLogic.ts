@@ -43,16 +43,22 @@ export class NextPanelLogic extends Component {
                 if (canPlace) {
                     blockLogic.setColor();
                 } else {
-                    blockLogic.setGray();
                     grayCount++;
+                    blockLogic.setGray();
                 }
             }
-            if (i == this.nextPanel.children.length - 1 && grayCount == blockCount && grayCount != 0) {
-                this.scheduleOnce(() => {
-                    this.node.parent.parent.getComponent(GamePage).onSettle(false);
-                }, 1)
-            }
         }
+        this.scheduleOnce(() => {
+            if (grayCount == blockCount && grayCount != 0) {
+                console.log(blockCount, grayCount)
+                let inGame = this.node.parent.parent.getComponent(GamePage).inGame;
+                if (inGame) {
+                    this.scheduleOnce(() => {
+                        EventManager.getInstance().emit("gameSettle", false);
+                    }, 0.5)
+                }
+            }
+        }, 1)
     }
 
 
@@ -60,9 +66,7 @@ export class NextPanelLogic extends Component {
      * 创建下方三个块
      */
     createThreeBlock() {
-        console.log("NextPanelLogic createThreeBlock");
         let indexs: number[] = Util.getRandomNumsFromNToM(0, 29, 3);
-
         for (let i = 0; i < this.nextPanel.children.length; i++) {
             this._blockPool.getBlock(indexs[i], (block: Node) => {
                 block.setParent(this.nextPanel.children[i]);
@@ -76,7 +80,6 @@ export class NextPanelLogic extends Component {
      * 刷新下方三个块
      */
     freshThreeBlock() {
-        console.log("NextPanelLogic freshThreeBlock");
         for (let child of this.nextPanel.children) {
             child.removeAllChildren();
         }

@@ -15,7 +15,7 @@ export class TaskItem extends Component {
         this.taskData = taskData;
 
         this.node.getChildByName("TaskId").getComponent(Label).string = taskData.id;
-        this.node.getChildByName("LeftBg").getChildByName("Des").getComponent(Label).string = taskData.content;
+        this.node.getChildByName("Des").getComponent(Label).string = taskData.content;
 
         let value: any = null;
         switch (taskData.name) {
@@ -35,7 +35,7 @@ export class TaskItem extends Component {
             default:
                 break;
         }
-        this.node.getChildByName("LeftBg").getChildByName("Percent").getComponent(Label).string = `（${value} /${taskData.maximum} ）`;
+        this.node.getChildByName("Percent").getComponent(Label).string = `（${value} /${taskData.maximum} ）`;
 
         this.node.getChildByName("Gold").getChildByName("Value").getComponent(Label).string = `x${taskData.reward_value}`
 
@@ -59,14 +59,12 @@ export class TaskItem extends Component {
 
 
     onCompletedTask(e) {
-        console.log(this.taskData.id);
         HttpManager.completeTask(this.taskData.id, (res) => {
-            console.log("完成任务", res);
             TipsManager.getInstance().showTips(`完成任务,获得金币x${this.taskData.reward_value}`);
             this.setBtnState(2);
         }, (e) => {
             console.error("领取失败", e);
-            TipsManager.getInstance().showTips(`领取失败`);
+            // TipsManager.getInstance().showTips(`领取失败`);
         })
     }
 }

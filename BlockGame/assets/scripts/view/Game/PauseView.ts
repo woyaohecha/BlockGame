@@ -1,5 +1,6 @@
 import { _decorator, Component, director, Node } from 'cc';
 import { AudioManager } from '../../manager/AudioManager';
+import { EventManager } from '../../manager/EventManager';
 import { GamePage } from './GamePage';
 const { ccclass, property } = _decorator;
 
@@ -34,12 +35,11 @@ export class PauseView extends Component {
     }
 
     onBtnQuit() {
-        // this.node.parent.getComponent(GamePage).onQuit();
-        this.node.parent.getComponent(GamePage).onSettle(false);
+        EventManager.getInstance().emit("gameQuit");
     }
 
     onBtnClose() {
-        this.node.parent.getComponent(GamePage).onContinue();
+        EventManager.getInstance().emit("gameStart");
     }
 }
 

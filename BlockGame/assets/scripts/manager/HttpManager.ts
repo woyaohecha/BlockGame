@@ -1,7 +1,8 @@
-import { _decorator } from 'cc';
+import { director, sys, _decorator } from 'cc';
 import { AppConfig } from '../config/AppConfig';
 import { ApiUrl, HttpConfig } from '../config/HttpConfig';
 import { UserData } from '../data/UserData';
+import { TipsManager } from './TipsManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('HttpManager')
@@ -22,7 +23,28 @@ export class HttpManager {
         let xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function () {
             if (xhr.readyState == 4 && (xhr.status >= 200 && xhr.status < 400)) {
-                success(xhr.responseText);
+                let code = JSON.parse(xhr.responseText).code;
+                switch (code) {
+                    case 1:
+                        success(xhr.responseText);
+                        break;
+                    case 401:
+                        TipsManager.getInstance().showTips(JSON.parse(xhr.responseText).msg);
+                        if (url == HttpConfig.httpUrl + ApiUrl.AUTO_LOGIN) {
+                            fail();
+                        } else {
+                            UserData.getInstance().onQuit();
+                            TipsManager.getInstance().hideLoading();
+                            director.loadScene("Loading");
+                        }
+                        break;
+                    default:
+                        TipsManager.getInstance().showTips(JSON.parse(xhr.responseText).msg);
+                        fail();
+                }
+            }
+            if (xhr.status >= 400) {
+                fail();
             }
         };
         xhr.onerror = function (e) {
@@ -46,7 +68,12 @@ export class HttpManager {
             xhr.open("POST", url, true);
             xhr.setRequestHeader("Content-type", "application/json");
             if (auth) {
-                xhr.setRequestHeader("Authorization", "Bearer " + UserData.getInstance().loginInfo.access_token)
+                if (url == HttpConfig.httpUrl + ApiUrl.AUTO_LOGIN) {
+                    xhr.setRequestHeader("Authorization", "Bearer " + UserData.getInstance().refreshToken)
+                } else {
+                    xhr.setRequestHeader("Authorization", "Bearer " + UserData.getInstance().accessToken)
+                }
+
             }
             xhr.send(data);
         }
@@ -84,10 +111,19 @@ export class HttpManager {
         let params = {
             mobile: phone,
             sms_type: "login",
-            game_id: "1",
+            game_id: AppConfig.game_id,
             code: code
         }
         this.httpRequest("POST", url, params, false, success, fail);
+    }
+
+
+    public static autoLogin(success, fail) {
+        let url = HttpConfig.httpUrl + ApiUrl.AUTO_LOGIN;
+        let params = {
+            game_id: AppConfig.game_id
+        }
+        this.httpRequest("POST", url, params, true, success, fail);
     }
 
 
@@ -121,6 +157,16 @@ export class HttpManager {
     }
 
 
+    public static getDouble(level: number, success: Function, fail: Function) {
+        let url = HttpConfig.httpUrl + ApiUrl.GET_DOUBLE;
+        let params = {
+            game_id: AppConfig.game_id,
+            barrier_id: level
+        }
+        this.httpRequest("POST", url, params, true, success, fail);
+    }
+
+
     /**
      * 获取后台配置的广告列表
      * @param success 
@@ -131,7 +177,7 @@ export class HttpManager {
         let params = {
             game_id: AppConfig.game_id
         }
-        this.httpRequest("POST", url, params, true, success, fail);
+        this.httpRequest("POST", url, params, false, success, fail);
     }
 
 
@@ -203,7 +249,7 @@ export class HttpManager {
         let params = {
             game_id: AppConfig.game_id
         }
-        this.httpRequest("POST", url, params, true, success, fail);
+        this.httpRequest("POST", url, params, false, success, fail);
     }
 
 
@@ -246,6 +292,83 @@ export class HttpManager {
         let params = {
             game_id: AppConfig.game_id,
             task_id: taskId
+        }
+        this.httpRequest("POST", url, params, true, success, fail);
+    }
+
+    /**
+     * 获取提现配置
+     * @param success 
+     * @param fail 
+     */
+    public static getCashConfig(success: Function, fail: Function) {
+        let url = HttpConfig.httpUrl + ApiUrl.CASH_CONFIG;
+        let params = {
+            game_id: AppConfig.game_id
+        }
+        this.httpRequest("POST", url, params, true, success, fail);
+    }
+
+
+    /**
+     * 设置提现密码
+     * @param password 
+     * @param success 
+     * @param fail 
+     */
+    public static setPassword(password: string, success: Function, fail: Function) {
+        let url = HttpConfig.httpUrl + ApiUrl.SET_PASSWORD;
+        let params = {
+            game_id: AppConfig.game_id,
+            password: password
+        }
+        this.httpRequest("POST", url, params, true, success, fail);
+    }
+
+    /**
+     * 修改提现密码
+     * @param password 
+     * @param success 
+     * @param fail 
+     */
+    public static newPassword(oldPassword: string, newPassword: string, success: Function, fail: Function) {
+        let url = HttpConfig.httpUrl + ApiUrl.NEW_PASSWORD;
+        let params = {
+            game_id: AppConfig.game_id,
+            old_password: oldPassword,
+            new_password: newPassword
+        }
+        this.httpRequest("POST", url, params, true, success, fail);
+    }
+
+    /**
+     * 发起提现
+     * @param success 
+     * @param fail 
+     */
+    public static postCashOut(cashId: number, account: string, username: string, password: string, success: Function, fail: Function) {
+        let url = HttpConfig.httpUrl + ApiUrl.POST_CASHOUT;
+        let params = {
+            game_id: AppConfig.game_id,
+            withdrawal_configuration_id: cashId,
+            account: account,
+            username: username,
+            password: password
+        }
+        this.httpRequest("POST", url, params, true, success, fail);
+    }
+
+
+    /**
+     * 获取提现记录
+     * @param success 
+     * @param fail 
+     */
+    public static getCashOutRecord(success: Function, fail: Function) {
+        let url = HttpConfig.httpUrl + ApiUrl.CASH_RECORD;
+        let params = {
+            game_id: AppConfig.game_id,
+            page: "1"
         }
         this.httpRequest("POST", url, params, true, success, fail);
     }

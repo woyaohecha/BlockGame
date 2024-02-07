@@ -3,6 +3,7 @@ import { ResConfig } from '../../config/ResConfig';
 import { GameData } from '../../data/GameData';
 import { UserData } from '../../data/UserData';
 import { HttpManager } from '../../manager/HttpManager';
+import { UILayer, UIManager } from '../../manager/UIManager';
 import { TaskItem } from './TaskItem';
 const { ccclass, property } = _decorator;
 
@@ -15,35 +16,61 @@ export class TaskView extends Component {
     @property(Node)
     achievementPanel: Node = null;
 
-    level: number = null;
+    level: number = -1;
+    taskItemPrefab: Prefab = null;
 
     /**
      * 每次打开任务列表，刷新任务
      */
     onEnable() {
-        HttpManager.getTaskList(1, (res) => {
-            let data = JSON.parse(res).data.list;
-            console.log(data);
-            if (data.length > 0) {
-                for (let i = 0; i < data.length; i++) {
-                    this.createTask(data[i], this.dailyPanel);
+        this.level = -1;
+        GameData.getUserLevel((level) => {
+            this.level = level;
+            HttpManager.getTaskList(1, (res) => {
+                let data = JSON.parse(res).data.list;
+                if (data.length > 0) {
+                    for (let i = 0; i < data.length; i++) {
+                        this.createTask(data[i], this.dailyPanel);
+                    }
                 }
-            }
-        }, (e) => {
-            console.error(e);
-        })
+            }, (e) => {
+                console.error(e);
+            })
+            HttpManager.getTaskList(2, (res) => {
+                let data = JSON.parse(res).data.list;
+                if (data.length > 0) {
+                    for (let i = 0; i < data.length; i++) {
+                        this.createTask(data[i], this.achievementPanel);
+                    }
+                }
+            }, (e) => {
+                console.error(e);
+            })
 
-        HttpManager.getTaskList(2, (res) => {
-            let data = JSON.parse(res).data.list;
-            console.log(data);
-            if (data.length > 0) {
-                for (let i = 0; i < data.length; i++) {
-                    this.createTask(data[i], this.achievementPanel);
-                }
-            }
         }, (e) => {
-            console.error(e);
+
         })
+        // HttpManager.getTaskList(1, (res) => {
+        //     let data = JSON.parse(res).data.list;
+        //     if (data.length > 0) {
+        //         for (let i = 0; i < data.length; i++) {
+        //             this.createTask(data[i], this.dailyPanel);
+        //         }
+        //     }
+        // }, (e) => {
+        //     console.error(e);
+        // })
+
+        // HttpManager.getTaskList(2, (res) => {
+        //     let data = JSON.parse(res).data.list;
+        //     if (data.length > 0) {
+        //         for (let i = 0; i < data.length; i++) {
+        //             this.createTask(data[i], this.achievementPanel);
+        //         }
+        //     }
+        // }, (e) => {
+        //     console.error(e);
+        // })
     }
 
     /**
@@ -52,32 +79,29 @@ export class TaskView extends Component {
      * @param parent 任务挂载的父节点
      */
     createTask(taskData: any, parent: Node) {
-        resources.load(ResConfig.taskPrefabPath, (e, taskPrefab: Prefab) => {
-            if (e) {
-                console.log(e);
-                return;
-            }
-            let task = instantiate(taskPrefab);
+        if (this.taskItemPrefab) {
+            let task = instantiate(this.taskItemPrefab);
             if (taskData.name == "通关游戏") {
-                if (this.level == null) {
-                    GameData.getUserLevel((level) => {
-                        this.level = level;
-                        task.getComponent(TaskItem).init(taskData, level);
-                        task.setParent(parent);
-                    }, (e) => {
-
-                    })
-                } else {
-                    task.getComponent(TaskItem).init(taskData, this.level);
-                    task.setParent(parent);
-                }
-
+                task.getComponent(TaskItem).init(taskData, this.level);
+                task.setParent(parent);
             } else {
                 task.getComponent(TaskItem).init(taskData);
                 task.setParent(parent);
             }
+        } else {
+            resources.load(ResConfig.taskPrefabPath, (e, taskPrefab: Prefab) => {
+                if (e) {
+                    console.log(e);
+                    return;
+                }
+                this.taskItemPrefab = taskPrefab;
+                this.createTask(taskData, parent);
+            })
+        }
+    }
 
-        })
+    onBtnClose() {
+        UIManager.getInstance().hideUI(UILayer.TASK);
     }
 
 

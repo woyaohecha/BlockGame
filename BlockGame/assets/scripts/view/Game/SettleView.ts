@@ -1,4 +1,8 @@
 import { _decorator, Component, Node, Label, game, director } from 'cc';
+import { AdManager, AdType } from '../../manager/AdManager';
+import { EventManager } from '../../manager/EventManager';
+import { HttpManager } from '../../manager/HttpManager';
+import { TipsManager } from '../../manager/TipsManager';
 import { GamePage } from './GamePage';
 const { ccclass, property } = _decorator;
 
@@ -11,33 +15,70 @@ export class SettleView extends Component {
     @property(Node)
     doubleBtn: Node = null;
 
+    @property(Label)
+    levelLabel: Label = null;
 
-    init(value: boolean, goldCount?: number) {
+    private _level: number = 0;
+    get level() {
+        return this._level;
+    }
+    set level(value: number) {
+        this._level = value;
+        this.levelLabel.string = `value`;
+    }
+
+    init(level: number, value: boolean, goldCount?: number) {
+        this._level = level + 1;
         this.node.getChildByName("Win").active = value;
         this.node.getChildByName("Lose").active = !value;
-        this.goldCountLabel.string = `${goldCount ? goldCount : 0}`;
+        this.goldCountLabel.string = `x${goldCount ? goldCount : 0}`;
         this.doubleBtn.active = true;
     }
 
     onBtnDouble() {
-        this.doubleBtn.active = false;
+        //todo:play vedio end call function 
+        AdManager.getInstance().hideBanner();
+        AdManager.getInstance().showAd(AdType.video, () => {
+
+        }, () => {
+
+        }, () => {
+            AdManager.getInstance().showAd(AdType.banner);
+            HttpManager.getDouble(this.level, () => {
+                console.log("get double success!");
+                TipsManager.getInstance().showTips("双倍领取成功");
+                EventManager.getInstance().emit("gameStart");
+            }, () => {
+
+            })
+        })
+
     }
 
     onBtnBack() {
-        this.node.parent.getComponent(GamePage).onQuit();
+        EventManager.getInstance().emit("gameQuit");
     }
 
-    onBtnContinue() {
-        this.node.parent.getComponent(GamePage).onStart();
+    onBtnNext() {
+        EventManager.getInstance().emit("gameNext");
     }
 
 
     onBtnRelive() {
-        this.node.parent.getComponent(GamePage).onRelive();
+        AdManager.getInstance().hideBanner();
+        AdManager.getInstance().showAd(AdType.video, () => {
+
+        }, () => {
+
+        }, () => {
+            AdManager.getInstance().showAd(AdType.banner);
+            EventManager.getInstance().emit("gameRelive");
+        })
+
     }
 
     onBtnRetry() {
-        this.node.parent.getComponent(GamePage).onStart();
+        EventManager.getInstance().emit("gameStart");
     }
 }
 

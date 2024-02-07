@@ -1,0 +1,152 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+
+android {
+    compileSdkVersion 30
+    buildToolsVersion "30.0.2"
+
+    signingConfigs {
+        demo {
+            keyAlias 'csjdemmo'
+            keyPassword 'bytedancecsjdemo'
+            storeFile file('open_ad_sdk.keystore')
+            storePassword 'bytedancecsjdemo'
+        }
+    }
+
+    defaultConfig {
+        applicationId "com.union_test.toutiao"
+        minSdkVersion 21
+        targetSdkVersion 30
+        versionCode 1
+        versionName "4.0.0.0"
+
+        multiDexEnabled true
+
+        ndk {
+            abiFilters 'armeabi', 'arm64-v8a', 'armeabi-v7a'
+        }
+
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        debug {
+            debuggable true
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.demo
+        }
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.demo
+        }
+    }
+
+    lintOptions {
+        checkReleaseBuilds false
+    }
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
+    }
+}
+
+repositories {
+    flatDir {
+        dirs 'libs','./libs/mtg'
+    }
+    maven { url 'https://artifact.bytedance.com/repository/AwemeOpenSDK' }
+
+}
+
+def adnGdtVersion = "4.561.1431"
+def adnGdtVersionFix = ".0"
+
+def adnKsVersion = "3.3.57"
+def adnKsVersionFix = ".0"
+
+def adnBaiduVersion = "9.332"
+def adnBaiduVersionFix = ".0"
+
+def adnKlevinVersion = "2.11.0.3"
+def adnKlevinVersionFix = ".15"
+
+def adnMintegralVersion = "16.5.47"
+def adnMintegralVersionFix = ".1"
+
+def adnSigmobVersion = "4.15.1"
+def adnSigmobVersionFix = ".0"
+def adnSigmobCommonVersion = "1.6.0"
+
+def adnUnityVersion = "4.3.0"
+def adnUnityVersionFix = ".21"
+
+def adnAdmobVersion = "17.2.0"
+def adnAdmobVersionFix = ".54"
+
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+
+    implementation(name: 'circleimageview-2.2.0', ext: 'aar')
+    implementation(name: 'LayoutManagerGroup', ext: 'aar')
+    implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    implementation 'com.squareup.okhttp3:okhttp:3.12.1'
+    implementation "com.android.support:appcompat-v7:28.0.0"
+    implementation "com.android.support:support-annotations:28.0.0"
+    implementation "com.android.support:support-v4:28.0.0"
+    implementation "com.squareup.leakcanary:leakcanary-android-no-op:1.5.4"
+    implementation "com.android.support:recyclerview-v7:28.0.0"
+    implementation 'com.android.support:multidex:1.0.3'
+    implementation 'com.android.support.constraint:constraint-layout:2.0.4'
+
+    implementation "com.pangle.cn:mediation-ks-adapter:${adnKsVersion}${adnKsVersionFix}"
+    implementation(name: "kssdk-ad-${adnKsVersion}", ext: 'aar')
+    implementation("com.google.android.gms:play-services-ads:${adnAdmobVersion}") {
+        exclude group: 'com.android.support'
+    }
+    implementation "com.pangle.cn:mediation-admob-adapter:${adnAdmobVersion}${adnAdmobVersionFix}"
+    implementation "com.pangle.cn:mediation-baidu-adapter:${adnBaiduVersion}${adnBaiduVersionFix}"
+    implementation(name: "Baidu_MobAds_SDK_v${adnBaiduVersion}", ext: 'aar')
+    implementation "com.pangle.cn:mediation-gdt-adapter:${adnGdtVersion}${adnGdtVersionFix}"
+    implementation(name: "GDTSDK.unionNormal.${adnGdtVersion}", ext: 'aar')
+    implementation "com.pangle.cn:mediation-klevin-adapter:${adnKlevinVersion}${adnKlevinVersionFix}"
+    implementation(name: "klevinSDK_${adnKlevinVersion}", ext: 'aar')
+    implementation "com.pangle.cn:mediation-mintegral-adapter:${adnMintegralVersion}${adnMintegralVersionFix}"
+    implementation(name: "mbridge_videojs_${adnMintegralVersion}", ext: 'aar')
+    implementation(name: "mbridge_mbjscommon_${adnMintegralVersion}", ext: 'aar')
+    implementation(name: "mbridge_playercommon_${adnMintegralVersion}", ext: 'aar')
+    implementation(name: "mbridge_reward_${adnMintegralVersion}", ext: 'aar')
+    implementation(name: "mbridge_videocommon_${adnMintegralVersion}", ext: 'aar')
+    implementation(name: "mbridge_chinasame_${adnMintegralVersion}", ext: 'aar')
+    implementation(name: "mbridge_interstitialvideo_${adnMintegralVersion}", ext: 'aar')
+    implementation(name: "mbridge_mbnative_${adnMintegralVersion}", ext: 'aar')
+    implementation(name: "mbridge_nativeex_${adnMintegralVersion}", ext: 'aar')
+    implementation(name: "mbridge_mbnativeadvanced_${adnMintegralVersion}", ext: 'aar')
+    implementation(name: "mbridge_interstitial_${adnMintegralVersion}", ext: 'aar')
+    implementation(name: "mbridge_mbbanner_${adnMintegralVersion}", ext: 'aar')
+    implementation(name: "mbridge_mbsplash_${adnMintegralVersion}", ext: 'aar')
+    implementation(name: "mbridge_mbbid_${adnMintegralVersion}", ext: 'aar')
+    implementation(name: "mbridge_newinterstitial_${adnMintegralVersion}", ext: 'aar')
+    implementation "com.pangle.cn:mediation-sigmob-adapter:${adnSigmobVersion}${adnSigmobVersionFix}"
+    implementation(name: "windAd-${adnSigmobVersion}", ext: 'aar')
+    implementation(name: "windAd-common-${adnSigmobCommonVersion}", ext: 'aar')
+    implementation "com.pangle.cn:mediation-unity-adapter:${adnUnityVersion}${adnUnityVersionFix}"
+    implementation(name: "unity-ads-${adnUnityVersion}", ext: 'aar')
+
+    //测试工具
+    implementation(name: 'tools-release', ext: 'aar')
+    implementation(name: 'open_ad_sdk', ext: 'aar')
+
+    implementation "com.google.code.gson:gson:2.8.5"
+    implementation "com.bytedance.ies.ugc.aweme:opensdk-china-external:0.1.8.0"
+    implementation "com.bytedance.ies.ugc.aweme:opensdk-common:0.1.8.0"
+
+
+}

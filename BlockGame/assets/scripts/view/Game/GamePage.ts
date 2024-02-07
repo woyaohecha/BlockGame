@@ -1,6 +1,9 @@
 import { _decorator, Component, Node, director } from 'cc';
 import { GameData } from '../../data/GameData';
+import { UserData } from '../../data/UserData';
 import { GridPanelLogic } from '../../gameLogic/GridPanelLogic';
+import { AdManager } from '../../manager/AdManager';
+import { EventManager } from '../../manager/EventManager';
 import { HttpManager } from '../../manager/HttpManager';
 import { TipsManager } from '../../manager/TipsManager';
 import { PlayView } from './PlayView';
@@ -26,9 +29,17 @@ export class GamePage extends Component {
     settleView: Node = null;
 
     gridPanelLogic: GridPanelLogic = null;
+    inGame: boolean = false;
 
     onLoad() {
         this.gridPanelLogic = this.playView.getChildByName("GridPanel").getComponent(GridPanelLogic);
+        EventManager.getInstance().on("gameStart", this.onStart, this);
+        EventManager.getInstance().on("gamePause", this.onPause, this);
+        EventManager.getInstance().on("gameContinue", this.onContinue, this);
+        EventManager.getInstance().on("gameNext", this.onNext, this);
+        EventManager.getInstance().on("gameRelive", this.onRelive, this);
+        EventManager.getInstance().on("gameSettle", this.onSettle, this);
+        EventManager.getInstance().on("gameQuit", this.onQuit, this);
     }
 
     start() {
@@ -44,8 +55,8 @@ export class GamePage extends Component {
         this.playView.active = true;
         this.pauseView.active = false;
         this.settleView.active = false;
-
         this.playView.getComponent(PlayView).initGamePage();
+        this.inGame = true;
     }
 
 
@@ -58,6 +69,7 @@ export class GamePage extends Component {
         this.playView.active = true;
         this.pauseView.active = false;
         this.settleView.active = false;
+        this.inGame = true;
     }
 
     /**
@@ -84,30 +96,41 @@ export class GamePage extends Component {
      * @param goldCount 获胜时的奖励
      */
     onSettle(value: boolean, goldCount?: number) {
-        console.log("gamePage onSettle:", value);
-        if (value) {
-            TipsManager.getInstance().showLoading("结算中...");
-            GameData.getUserLevel((level) => {
-                HttpManager.passLevel(level, () => {
+        if (!this.inGame) {
+            return;
+        }
+        console.log("gamePage onSettle:", value, goldCount);
+        this.inGame = false;
+        TipsManager.getInstance().showLoading("结算中...");
+        GameData.getUserLevel((level) => {
+            if (value) {
+                UserData.getInstance().passCount++;
+                HttpManager.passLevel(level + 1, () => {
                     TipsManager.getInstance().hideLoading();
-                    this.settleView.getComponent(SettleView).init(value, goldCount)
+                    this.settleView.getComponent(SettleView).init(level, value, goldCount)
                     this.settleView.active = true;
                 }, (e) => {
                     console.error(e);
                     TipsManager.getInstance().hideLoading();
                     this.settleView.active = true;
                 })
-            }, (e) => {
-                console.error(e);
+            } else {
                 TipsManager.getInstance().hideLoading();
+                this.settleView.getComponent(SettleView).init(level, value)
                 this.settleView.active = true;
-            })
-
-        } else {
-            this.settleView.getComponent(SettleView).init(value)
+            }
+        }, (e) => {
+            console.error(e);
+            TipsManager.getInstance().hideLoading();
             this.settleView.active = true;
-        }
+        })
+    }
 
+    /**
+     * 下一关
+     */
+    onNext() {
+        this.onStart();
     }
 
 
@@ -115,6 +138,7 @@ export class GamePage extends Component {
      * 退出游戏
      */
     onQuit() {
+        this.inGame = false;
         console.log("gamePage onQuit");
         director.loadScene("Home");
     }

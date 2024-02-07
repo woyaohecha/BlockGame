@@ -1,7 +1,9 @@
-import { _decorator, Component, Node, Sprite, Label, SpriteFrame, assetManager, ImageAsset, Texture2D, resources, director } from 'cc';
+import { _decorator, Component, Node, Sprite, Label, SpriteFrame, assetManager, ImageAsset, Texture2D, resources, director, sys } from 'cc';
 import { ResConfig } from '../../config/ResConfig';
 import { UserData } from '../../data/UserData';
+import { AdManager, AdType } from '../../manager/AdManager';
 import { HttpManager } from '../../manager/HttpManager';
+import { UILayer, UIManager } from '../../manager/UIManager';
 import { Util } from '../../Util';
 const { ccclass, property } = _decorator;
 
@@ -20,21 +22,20 @@ export class MineView extends Component {
     @property(Label)
     balanceLabel: Label = null;
 
+    private _hasPassword: boolean = false;
+
     onEnable() {
+        AdManager.getInstance().hideBanner();
         HttpManager.getUserInfo((res) => {
             let data = JSON.parse(res).data;
-            console.log("---获取用户信息成功", data);
             this.init(data);
         }, () => {
             console.error("---获取用户信息失败");
         })
     }
 
-    start() {
-
-    }
-
     init(data) {
+        this._hasPassword = data.is_payment_password == 1;
         this.userNameLabel.string = data.nickname;
         this.userIdLabel.string = "ID:" + Util.padZero(data.user_id, 6);
         this.balanceLabel.string = data.goldcoin;
@@ -81,7 +82,7 @@ export class MineView extends Component {
      * 提现
      */
     onBtnCashOut() {
-
+        UIManager.getInstance().showUI(UILayer.CASH_OUT);
     }
 
 
@@ -89,7 +90,11 @@ export class MineView extends Component {
      * 分享
      */
     onBtnShare() {
-
+        if (this._hasPassword) {
+            UIManager.getInstance().showUI(UILayer.EDIT_PASSWORD);
+        } else {
+            UIManager.getInstance().showUI(UILayer.SET_PASSWORD);
+        }
     }
 
 
@@ -97,7 +102,7 @@ export class MineView extends Component {
      * 提现记录
      */
     onBtnCashRecord() {
-
+        UIManager.getInstance().showUI(UILayer.CASH_RECORD);
     }
 
 
@@ -105,7 +110,7 @@ export class MineView extends Component {
      * 联系客服
      */
     onBtnCustomer() {
-
+        UIManager.getInstance().showUI(UILayer.CUSTOMER);
     }
 
 
@@ -113,7 +118,7 @@ export class MineView extends Component {
      * 查看用户协议
      */
     onBtnUserAgreement() {
-
+        // UIManager.getInstance().showUI(UILayer.USEAGENT);
     }
 
 
@@ -121,7 +126,7 @@ export class MineView extends Component {
      * 查看隐私政策
      */
     onBtnPrivacy() {
-
+        // UIManager.getInstance().showUI(UILayer.PRIVACY);
     }
 
 
@@ -129,7 +134,7 @@ export class MineView extends Component {
      * 关于我们
      */
     onBtnAboutUs() {
-
+        UIManager.getInstance().showUI(UILayer.ABOUT_US);
     }
 
 
@@ -137,7 +142,18 @@ export class MineView extends Component {
      * 注销账号
      */
     onBtnQuit() {
+        UserData.getInstance().onQuit();
         director.loadScene("Loading");
+    }
+
+
+    onBtnClose() {
+        UIManager.getInstance().hideUI(UILayer.MINE);
+    }
+
+
+    onDisable() {
+        AdManager.getInstance().showAd(AdType.banner);
     }
 }
 

@@ -19,14 +19,14 @@ export class TipsManager {
     /**
      * 消息提示根节点
      */
-    private msgRoot_2D: Node;
+    private _msgRoot_2D: Node;
 
     /**
      * 消息节点
      */
-    private tips: Node;
-    private toast: Node;
-    private loading: Node;
+    private _tips: Node;
+    private _toast: Node;
+    private _loading: Node;
 
     /**
      * 查找场景常驻节点---2D 
@@ -35,7 +35,17 @@ export class TipsManager {
      * loading节点
      */
     constructor() {
-        this.msgRoot_2D = find("Root2D");
+        this._msgRoot_2D = find("Root2D");
+        this._tips = this._msgRoot_2D.getChildByName("Tips");
+        this._tips.setSiblingIndex(203);
+        this._toast = this._msgRoot_2D.getChildByName("Toast");
+        this._toast.setSiblingIndex(201);
+        this._loading = this._msgRoot_2D.getChildByName("Loading");
+        this._toast.setSiblingIndex(202);
+
+        this._tips.active = false;
+        this._toast.active = false;
+        this._loading.active = false;
     }
 
     private tipsTimeoutId = null;
@@ -50,33 +60,16 @@ export class TipsManager {
         if (this.tipsTimeoutId) {
             clearTimeout(this.tipsTimeoutId);
         }
-        let setTips = () => {
-            let tipsLabel = this.tips.getChildByName("Msg").getComponent(Label);
-            tipsLabel.string = msg;
-            this.tips.active = true;
+        this._tips.active = false;
+        let tipsLabel = this._tips.getChildByName("Msg").getComponent(Label);
+        tipsLabel.string = msg;
+        setTimeout(() => {
+            this._tips.active = true;
             this.tipsTimeoutId = setTimeout(() => {
-                this.tips.active = false;
+                this._tips.active = false;
                 this.tipsTimeoutId = null;
             }, timeout ? timeout * 1000 : 2000);
-        }
-        if (this.tips) {
-            this.tips.active = false;
-            setTimeout(() => {
-                setTips();
-            }, 100);
-        } else {
-            resources.load(ResConfig.msgPath.tips, (e, asset: Prefab) => {
-                if (e) {
-                    console.log(e);
-                    return;
-                }
-                this.tips = instantiate(asset);
-                this.msgRoot_2D.addChild(this.tips);
-                this.tips.setSiblingIndex(2);
-                this.tips.setPosition(Vec3.ZERO);
-                setTips();
-            })
-        }
+        }, 100);
     }
 
     /**
@@ -86,39 +79,22 @@ export class TipsManager {
      * @param fullClose 是否支持全屏关闭,默认不支持
      */
     showToast(msgObj: { title: string, msg: string, btn: string }, btnClick?: Function, fullClose?: boolean) {
-        let setToast = () => {
-            let titleLabel = this.toast.getChildByName("Title").getComponent(Label);
-            let msgLabel = this.toast.getChildByName("Msg").getComponent(Label);
-            let btnLabel = this.toast.getChildByName("Btn").getComponent(Label);
-            titleLabel.string = msgObj.title;
-            msgLabel.string = msgObj.msg;
-            btnLabel.string = msgObj.btn;
-            this.toast.active = true;
+        let titleLabel = this._toast.getChildByName("Title").getComponent(Label);
+        let msgLabel = this._toast.getChildByName("Msg").getComponent(Label);
+        let btnLabel = this._toast.getChildByName("Btn").getComponent(Label);
+        titleLabel.string = msgObj.title;
+        msgLabel.string = msgObj.msg;
+        btnLabel.string = msgObj.btn;
+        this._toast.active = true;
 
-            //向按钮注入点击事件
-            let btnComp = btnLabel.getComponent(Button);
-            let btnClickEvent = btnClick ? btnClick : this.hideToast;
-            btnComp.node.on(Button.EventType.CLICK, btnClickEvent, this);
+        //向按钮注入点击事件
+        let btnComp = btnLabel.getComponent(Button);
+        let btnClickEvent = btnClick ? btnClick : this.hideToast;
+        btnComp.node.on(Button.EventType.CLICK, btnClickEvent, this);
 
-            if (fullClose) {
-                let fullBtn = this.toast.getComponent(Button);
-                fullBtn.node.on(Button.EventType.CLICK, this.hideToast, this);
-            }
-        }
-        if (this.toast) {
-            setToast();
-        } else {
-            resources.load(ResConfig.msgPath.toast, (e, asset: Prefab) => {
-                if (e) {
-                    console.log(e);
-                    return;
-                }
-                this.toast = instantiate(asset);
-                this.msgRoot_2D.addChild(this.toast);
-                this.toast.setSiblingIndex(0);
-                this.toast.setPosition(Vec3.ZERO);
-                setToast();
-            })
+        if (fullClose) {
+            let fullBtn = this._toast.getComponent(Button);
+            fullBtn.node.on(Button.EventType.CLICK, this.hideToast, this);
         }
     }
 
@@ -127,17 +103,17 @@ export class TipsManager {
      * @returns 
      */
     hideToast() {
-        if (!this.toast) {
+        if (!this._toast) {
             return;
         }
 
-        let btnComp = this.toast.getChildByName("Btn").getComponent(Button);
+        let btnComp = this._toast.getChildByName("Btn").getComponent(Button);
         btnComp.node.off(Button.EventType.CLICK);
 
-        let fullBtn = this.toast.getComponent(Button);
+        let fullBtn = this._toast.getComponent(Button);
         fullBtn.node.off(Button.EventType.CLICK);
 
-        this.toast.active = false;
+        this._toast.active = false;
     }
 
     /**
@@ -146,37 +122,19 @@ export class TipsManager {
      * @returns 
      */
     showLoading(msg: string) {
-        let setLoading = () => {
-
-            let loadingLabel = this.loading.getChildByName("Msg").getComponent(Label);
-            loadingLabel.string = msg;
-            this.loading.active = true;
-        }
-        if (this.loading) {
-            setLoading();
-        } else {
-            resources.load(ResConfig.msgPath.loading, (e, asset: Prefab) => {
-                if (e) {
-                    console.log(e);
-                    return;
-                }
-                this.loading = instantiate(asset);
-                this.msgRoot_2D.addChild(this.loading);
-                this.loading.setSiblingIndex(1);
-                this.loading.setPosition(Vec3.ZERO);
-                setLoading();
-            })
-        }
+        let loadingLabel = this._loading.getChildByName("Msg").getComponent(Label);
+        loadingLabel.string = msg;
+        this._loading.active = true;
     }
 
     /**
      * 关闭加载页面
      */
     hideLoading() {
-        if (!this.loading) {
+        if (!this._loading) {
             return;
         }
-        this.loading.active = false;
+        this._loading.active = false;
     }
 }
 
